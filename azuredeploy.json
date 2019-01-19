@@ -66,14 +66,14 @@
     "jumpBoxPublicIPAddressName": "JumpHostPublicIP",
     "jumpBoxNsgName": "JumpHostNSG",
     "jumpBoxNicName": "JumpHostNic",
-    "jumpBoxSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), variables('jumpBoxSubnetName'))]",
+    "jumpBoxSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), variables('vNet').jumpBoxSubnetName)]",
     "serverNicName": "ServerNic",
-    "serverSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), variables('serversSubnetName'))]",
+    "serverSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), variables('vNet').serversSubnetName)]",
     "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'sajumpbox')]",
     "azfwRouteTableName": "AzfwRouteTable",
     "firewallName": "firewall1",
     "publicIPName": "publicIP1",
-    "azureFirewallSubnetId":  "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vNetName'), variables('azureFirewallSubnetName'))]",
+    "azureFirewallSubnetId":  "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vNetName'), variables('hubvNet').azureFirewallSubnetName)]",
     "azureFirewallPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPName'))]"
   },
   "resources": [
