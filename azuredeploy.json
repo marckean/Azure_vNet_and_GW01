@@ -4,18 +4,21 @@
   "parameters": {
     "vNetName": {
       "type": "string",
+      "defaultValue": "ServersvNet",
       "metadata": {
         "description": "virtual network name"
       }
     },
     "GatewayvNetName": {
       "type": "string",
+      "defaultValue": "GatewayvNet",
       "metadata": {
         "description": "Gateway virtual network name"
       }
     },
     "HubvNetName": {
       "type": "string",
+      "defaultValue": "HubvNet",
       "metadata": {
         "description": "Hub virtual network name"
       }
