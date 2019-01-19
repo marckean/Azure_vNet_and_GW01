@@ -75,7 +75,7 @@
     "azureFirewallPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',variables('AzureFirewallPublicIPName'))]",
     "gatewayName": "vpnGateway",
     "gatewaySku": "Basic",
-    "vpnType": "Policy"
+    "vpnType": "PolicyBased"
   },
   "resources": [
     {
