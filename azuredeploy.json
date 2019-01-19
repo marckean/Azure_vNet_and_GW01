@@ -102,7 +102,7 @@
             "properties": {
               "addressPrefix": "0.0.0.0/0",
               "nextHopType": "VirtualAppliance",
-              "nextHopIpAddress": "[variables('nextHopIP')]"
+              "nextHopIpAddress": "[reference(concat('Microsoft.Network/azureFirewalls/', variables('AzureFirewallPublicIPName'), '/azureFirewallIpConfigurations/AzureFirewallIpConfiguration'), '2017-10-01', 'Full').properties.privateIPAddress]"
             }
           }
         ]
