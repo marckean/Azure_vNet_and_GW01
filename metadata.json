@@ -5,5 +5,7 @@
     "description": "This template creates a virtual network with 3 subnets (server subnet, jumpbox subet and AzureFirewall subnet), a jumpbox VM with public IP, A server VM, UDR route to point to AzuerFirewall for the ServerSubnet and an azure firewall with 1 sample application rule and 1 sample network rule",
     "summary": "Create a sandbox setup of AzureFirewall",
     "githubUsername": "marckean",
-    "dateUpdated": "2019-01-11"
+    "dateUpdated": "2019-01-11",
+    "vpnType": "Route based (Dynamic Gateway) or Policy based (Static Gateway)",
+    "gatewaySku": "Basic, Standard, HighPerformance"
   }
