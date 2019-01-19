@@ -216,14 +216,9 @@
         "allowGatewayTransit": false,
         "useRemoteGateways": false,
         "remoteVirtualNetwork": {
-          "id": "string"
+          "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
         },
-        "remoteAddressSpace": {
-          "addressPrefixes": [
-            "string"
-          ]
-        },
-        "peeringState": "string"
+        "peeringState": "Connected"
       }
     },
     {
@@ -242,14 +237,9 @@
         "allowGatewayTransit": false,
         "useRemoteGateways": false,
         "remoteVirtualNetwork": {
-          "id": "string"
+          "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vNetName'))]"
         },
-        "remoteAddressSpace": {
-          "addressPrefixes": [
-            "string"
-          ]
-        },
-        "peeringState": "string"
+        "peeringState": "Connected"
       }
     },
     {
@@ -268,14 +258,9 @@
         "allowGatewayTransit": true,
         "useRemoteGateways": false,
         "remoteVirtualNetwork": {
-          "id": "string"
+          "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
         },
-        "remoteAddressSpace": {
-          "addressPrefixes": [
-            "string"
-          ]
-        },
-        "peeringState": "string"
+        "peeringState": "Connected"
       }
     },
     {
@@ -294,14 +279,9 @@
         "allowGatewayTransit": false,
         "useRemoteGateways": true,
         "remoteVirtualNetwork": {
-          "id": "string"
+          "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('GatewayvNetName'))]"
         },
-        "remoteAddressSpace": {
-          "addressPrefixes": [
-            "string"
-          ]
-        },
-        "peeringState": "string"
+        "peeringState": "Connected"
       }
     },
     {
