@@ -548,8 +548,6 @@
       "name": "[variables('firewallName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]",
         "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
         "[concat('Microsoft.Network/publicIPAddresses/', variables('AzureFirewallPublicIPName'))]"
       ],
