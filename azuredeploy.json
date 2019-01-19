@@ -359,7 +359,7 @@
         "publicIPAllocationMethod": "Static",
         "publicIPAddressVersion": "IPv4",
         "dnsSettings": {
-          "domainNameLabel": "[concat('pip', 'uniqueString(variables('AzureFirewallPublicIPName'))')]"
+          "domainNameLabel": "[concat('pip', uniqueString(variables('AzureFirewallPublicIPName')))]"
         }
       }
     },
