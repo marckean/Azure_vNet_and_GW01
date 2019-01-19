@@ -76,7 +76,7 @@
     "azfwRouteTableName": "AzfwRouteTable",
     "firewallName": "firewall1",
     "publicIPName": "publicIP1",
-    "azureFirewallSubnetId":  "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vNetName'), variables('hubvNet').azureFirewallSubnetName)]",
+    "azureFirewallSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('vNetName'), variables('hubvNet').azureFirewallSubnetName)]",
     "azureFirewallPublicIpId": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPName'))]"
   },
   "resources": [
@@ -144,7 +144,30 @@
             }
           }
         ]
-      }
+      },
+      "resources": [
+        {
+          "name": "[variables('vNettoHubPeeringName')]",
+          "type": "virtualNetworkPeerings",
+          "apiVersion": "2018-08-01",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
+          ],
+          "properties": {
+            "allowVirtualNetworkAccess": true,
+            "allowForwardedTraffic": false,
+            "allowGatewayTransit": false,
+            "useRemoteGateways": false,
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
+            },
+            "peeringState": "Connected"
+          }
+        }
+      ]
     },
     {
       "name": "[parameters('HubvNetName')]",
@@ -171,7 +194,51 @@
             }
           }
         ]
-      }
+      },
+      "resources": [
+        {
+          "name": "[variables('HubtoGWPeeringName')]",
+          "type": "virtualNetworkPeerings",
+          "apiVersion": "2018-08-01",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
+          ],
+          "properties": {
+            "allowVirtualNetworkAccess": true,
+            "allowForwardedTraffic": false,
+            "allowGatewayTransit": false,
+            "useRemoteGateways": true,
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('GatewayvNetName'))]"
+            },
+            "peeringState": "Connected"
+          }
+        },
+        {
+          "name": "[variables('HubtovNetPeeringName')]",
+          "type": "virtualNetworkPeerings",
+          "apiVersion": "2018-08-01",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
+          ],
+          "properties": {
+            "allowVirtualNetworkAccess": true,
+            "allowForwardedTraffic": false,
+            "allowGatewayTransit": false,
+            "useRemoteGateways": false,
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vNetName'))]"
+            },
+            "peeringState": "Connected"
+          }
+        }
+      ]
     },
     {
       "name": "[parameters('GatewayvNetName')]",
@@ -198,91 +265,30 @@
             }
           }
         ]
-      }
-    },
-    {
-      "name": "[variables('vNettoHubPeeringName')]",
-      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-      "apiVersion": "2018-08-01",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
-    ],
-      "properties": {
-        "allowVirtualNetworkAccess": true,
-        "allowForwardedTraffic": false,
-        "allowGatewayTransit": false,
-        "useRemoteGateways": false,
-        "remoteVirtualNetwork": {
-          "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
-        },
-        "peeringState": "Connected"
-      }
-    },
-    {
-      "name": "[variables('HubtovNetPeeringName')]",
-      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-      "apiVersion": "2018-08-01",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
-    ],
-      "properties": {
-        "allowVirtualNetworkAccess": true,
-        "allowForwardedTraffic": false,
-        "allowGatewayTransit": false,
-        "useRemoteGateways": false,
-        "remoteVirtualNetwork": {
-          "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vNetName'))]"
-        },
-        "peeringState": "Connected"
-      }
-    },
-    {
-      "name": "[variables('GWtoHubPeeringName')]",
-      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-      "apiVersion": "2018-08-01",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
-    ],
-      "properties": {
-        "allowVirtualNetworkAccess": true,
-        "allowForwardedTraffic": true,
-        "allowGatewayTransit": true,
-        "useRemoteGateways": false,
-        "remoteVirtualNetwork": {
-          "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
-        },
-        "peeringState": "Connected"
-      }
-    },
-    {
-      "name": "[variables('HubtoGWPeeringName')]",
-      "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
-      "apiVersion": "2018-08-01",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
-    ],
-      "properties": {
-        "allowVirtualNetworkAccess": true,
-        "allowForwardedTraffic": false,
-        "allowGatewayTransit": false,
-        "useRemoteGateways": true,
-        "remoteVirtualNetwork": {
-          "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('GatewayvNetName'))]"
-        },
-        "peeringState": "Connected"
-      }
+      },
+      "resources": [
+        {
+          "name": "[variables('GWtoHubPeeringName')]",
+          "type": "virtualNetworkPeerings",
+          "apiVersion": "2018-08-01",
+          "location": "[parameters('location')]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
+          ],
+          "properties": {
+            "allowVirtualNetworkAccess": true,
+            "allowForwardedTraffic": true,
+            "allowGatewayTransit": true,
+            "useRemoteGateways": false,
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
+            },
+            "peeringState": "Connected"
+          }
+        }
+      ]
     },
     {
       "name": "[variables('publicIPName')]",
@@ -308,7 +314,7 @@
     },
     {
       "name": "[variables('jumpBoxNsgName')]",
-      "type": "Microsoft.Network/networkSecurityGroups",            
+      "type": "Microsoft.Network/networkSecurityGroups",
       "apiVersion": "2018-02-01",
       "location": "[parameters('location')]",
       "properties": {
@@ -385,7 +391,7 @@
         ]
       }
     },
-    { 
+    {
       "name": "JumpBox",
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "2017-12-01",
@@ -419,7 +425,7 @@
             {
               "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('JumpBoxNicName'))]"
             }
-           ]
+          ]
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
@@ -433,7 +439,7 @@
         "[resourceId('Microsoft.Network/networkInterfaces', variables('JumpBoxNicName'))]"
       ]
     },
-    { 
+    {
       "name": "Server",
       "type": "Microsoft.Compute/virtualMachines",
       "apiVersion": "2017-12-01",
@@ -467,7 +473,7 @@
             {
               "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('ServerNicName'))]"
             }
-           ]
+          ]
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
@@ -480,7 +486,7 @@
         "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
         "[resourceId('Microsoft.Network/networkInterfaces', variables('ServerNicName'))]"
       ]
-    },    
+    },
     {
       "apiVersion": "2018-07-01",
       "type": "Microsoft.Network/azureFirewalls",
@@ -494,7 +500,7 @@
         "ipConfigurations": [
           {
             "name": "IpConf",
-            "properties" : {
+            "properties": {
               "subnet": {
                 "id": "[variables('azureFirewallSubnetId')]"
               },
@@ -509,12 +515,25 @@
             "name": "appRc1",
             "properties": {
               "priority": 101,
-              "action": {"type": "Allow"},
+              "action": {
+                "type": "Allow"
+              },
               "rules": [
                 {
                   "name": "appRule1",
-                  "protocols": [{"port": "80", "protocolType": "http"}, {"port": "443", "protocolType": "https"}],
-                  "targetFqdns": ["*microsoft.com"]
+                  "protocols": [
+                    {
+                      "port": "80",
+                      "protocolType": "http"
+                    },
+                    {
+                      "port": "443",
+                      "protocolType": "https"
+                    }
+                  ],
+                  "targetFqdns": [
+                    "*microsoft.com"
+                  ]
                 }
               ]
             }
@@ -523,16 +542,26 @@
         "networkRuleCollections": [
           {
             "name": "netRc1",
-            "properties": {                    
+            "properties": {
               "priority": 200,
-              "action":  { "type":  "Allow"},
+              "action": {
+                "type": "Allow"
+              },
               "rules": [
                 {
                   "name": "netRule1",
-                  "protocols": ["TCP"],
-                  "sourceAddresses": ["192.168.2.0/24"],
-                  "destinationAddresses": ["*"],
-                  "destinationPorts": ["8000-8999"]
+                  "protocols": [
+                    "TCP"
+                  ],
+                  "sourceAddresses": [
+                    "192.168.2.0/24"
+                  ],
+                  "destinationAddresses": [
+                    "*"
+                  ],
+                  "destinationPorts": [
+                    "8000-8999"
+                  ]
                 }
               ]
             }
@@ -540,52 +569,52 @@
         ],
         "natRuleCollections": [
           {
-              "name": "MarcNat",
-              "properties": {
-                  "provisioningState": "Succeeded",
-                  "priority": 100,
-                  "action": {
-                      "type": "Dnat"
-                  },
-                  "rules": [
-                      {
-                          "name": "JumpRDP",
-                          "protocols": [
-                              "TCP"
-                          ],
-                          "translatedAddress": "10.0.0.4",
-                          "translatedPort": "3389",
-                          "sourceAddresses": [
-                              "*"
-                          ],
-                          "destinationAddresses": [
-                            "[reference(concat('Microsoft.Network/publicIPAddresses/', variables('publicIPName')), '2017-10-01', 'Full').properties.ipAddress]"
-                          ],
-                          "destinationPorts": [
-                              "3390"
-                          ]
-                      },
-                      {
-                          "name": "ServerRDP",
-                          "protocols": [
-                              "TCP"
-                          ],
-                          "translatedAddress": "10.0.2.4",
-                          "translatedPort": "3389",
-                          "sourceAddresses": [
-                              "*"
-                          ],
-                          "destinationAddresses": [
-                            "[reference(concat('Microsoft.Network/publicIPAddresses/', variables('publicIPName')), '2017-10-01', 'Full').properties.ipAddress]"
-                          ],
-                          "destinationPorts": [
-                              "3391"
-                          ]
-                      }
+            "name": "MarcNat",
+            "properties": {
+              "provisioningState": "Succeeded",
+              "priority": 100,
+              "action": {
+                "type": "Dnat"
+              },
+              "rules": [
+                {
+                  "name": "JumpRDP",
+                  "protocols": [
+                    "TCP"
+                  ],
+                  "translatedAddress": "10.0.0.4",
+                  "translatedPort": "3389",
+                  "sourceAddresses": [
+                    "*"
+                  ],
+                  "destinationAddresses": [
+                    "[reference(concat('Microsoft.Network/publicIPAddresses/', variables('publicIPName')), '2017-10-01', 'Full').properties.ipAddress]"
+                  ],
+                  "destinationPorts": [
+                    "3390"
                   ]
-              }
+                },
+                {
+                  "name": "ServerRDP",
+                  "protocols": [
+                    "TCP"
+                  ],
+                  "translatedAddress": "10.0.2.4",
+                  "translatedPort": "3389",
+                  "sourceAddresses": [
+                    "*"
+                  ],
+                  "destinationAddresses": [
+                    "[reference(concat('Microsoft.Network/publicIPAddresses/', variables('publicIPName')), '2017-10-01', 'Full').properties.ipAddress]"
+                  ],
+                  "destinationPorts": [
+                    "3391"
+                  ]
+                }
+              ]
+            }
           }
-      ]
+        ]
       }
     }
   ]
