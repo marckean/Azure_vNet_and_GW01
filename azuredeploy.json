@@ -360,7 +360,7 @@
         "publicIPAllocationMethod": "Static",
         "publicIPAddressVersion": "IPv4",
         "dnsSettings": {
-          "domainNameLabel": "[concat('pip', deployment().name)]"
+          "domainNameLabel": "[concat('pip', uniqueString(deployment().name))]"
         }
       }
     },
