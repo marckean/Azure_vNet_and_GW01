@@ -654,7 +654,7 @@
                     "*"
                   ],
                   "destinationAddresses": [
-                    "[reference(concat('Microsoft.Network/publicIPAddresses/', variables('publicIPName')), '2017-10-01', 'Full').properties.ipAddress]"
+                    "[reference(concat('Microsoft.Network/publicIPAddresses/', variables('AzureFirewallPublicIPName')), '2017-10-01', 'Full').properties.ipAddress]"
                   ],
                   "destinationPorts": [
                     "3390"
@@ -671,7 +671,7 @@
                     "*"
                   ],
                   "destinationAddresses": [
-                    "[reference(concat('Microsoft.Network/publicIPAddresses/', variables('publicIPName')), '2017-10-01', 'Full').properties.ipAddress]"
+                    "[reference(concat('Microsoft.Network/publicIPAddresses/', variables('AzureFirewallPublicIPName')), '2017-10-01', 'Full').properties.ipAddress]"
                   ],
                   "destinationPorts": [
                     "3391"
