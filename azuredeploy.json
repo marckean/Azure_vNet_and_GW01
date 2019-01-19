@@ -208,7 +208,7 @@
             "allowVirtualNetworkAccess": true,
             "allowForwardedTraffic": false,
             "allowGatewayTransit": false,
-            "useRemoteGateways": false,
+            "useRemoteGateways": true,
             "remoteVirtualNetwork": {
               "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('GatewayvNetName'))]"
             },
@@ -327,10 +327,11 @@
       "name": "[variables('gatewayPublicIPName')]",
       "location": "[resourceGroup().location]",
       "sku": {
-        "name": "Standard"
-      },
+        "name": "Basic",
+        "tier": "Regional"
+    },
       "properties": {
-        "publicIPAllocationMethod": "Static",
+        "publicIPAllocationMethod": "Dynamic",
         "publicIPAddressVersion": "IPv4"
       }
     },
