@@ -117,7 +117,8 @@
       "type": "Microsoft.Network/virtualNetworks",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/routeTables', variables('azfwRouteTableName'))]"
+        "[resourceId('Microsoft.Network/routeTables', variables('azfwRouteTableName'))]",
+        "[resourceId('Microsoft.Network/azureFirewalls', variables('firewallName'))]"
       ],
       "tags": {
         "displayName": "[parameters('vNetName')]"
