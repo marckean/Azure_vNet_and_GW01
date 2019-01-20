@@ -7,7 +7,7 @@
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
-<p style="text-align:center"><img src="AzureFirewall02.jpg" width="450" alt="Azure Firewall Hub & Spoke"></p>
+<p style="text-align:center"><img src="AzureFirewall02.jpg" alt="Azure Firewall Hub & Spoke"></p>
 
 This template creates a virtual network with 3 subnets (server subnet, jumpbox subnet and AzureFirewall subnet), a jumpbox VM with public IP and RDP access,
 A server VM with only a private IP, UDR route to point to AzureFirewall for the ServerSubnet and an AzureFirewall with 1 sample application rule and 1 sample network rule.
