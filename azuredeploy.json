@@ -58,7 +58,7 @@
     "HubtovNetPeeringName": "HubtovNetPeering",
     "GWtoHubPeeringName": "GWtoHubPeering",
     "HubtoGWPeeringName": "HubtoGWPeering",
-    "nextHopIP": "10.0.1.4",
+    "nextHopIP": "10.0.8.4",
     "jumpBoxNsgName": "JumpHostNSG",
     "jumpBoxNicName": "JumpHostNic",
     "jumpBoxSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), variables('vNet').jumpBoxSubnetName)]",
@@ -102,14 +102,11 @@
             "properties": {
               "addressPrefix": "0.0.0.0/0",
               "nextHopType": "VirtualAppliance",
-              "nextHopIpAddress": "[reference(concat('Microsoft.Network/azureFirewalls/', variables('AzureFirewallPublicIPName'), '/azureFirewallIpConfigurations/AzureFirewallIpConfiguration'), '2017-10-01', 'Full').properties.privateIPAddress]"
+              "nextHopIpAddress": "[variables('nextHopIP')]"
             }
           }
         ]
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/azureFirewalls', variables('firewallName'))]"
-      ]
+      }
     },
     {
       "name": "[parameters('vNetName')]",
