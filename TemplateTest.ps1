@@ -15,7 +15,7 @@ $TemplateArgs = New-Object -TypeName Hashtable
 $TemplateArgs.Add('adminUsername', 'marckean')
 $TemplateArgs.Add('adminPassword', ('Passw0rd2019' | ConvertTo-SecureString -AsPlainText -Force))
 
-Test-AzureRmResourceGroupDeployment -ResourceGroupName 'Ausgridfw' -Mode 'Complete' `
+Test-AzureRmResourceGroupDeployment -ResourceGroupName 'Ausgridfw3' -Mode 'Complete' `
 -TemplateUri 'https://raw.githubusercontent.com/marckean/AzureFirewall02/master/azuredeploy.json' `
 @TemplateArgs 5>&1
 $DebugPreference = "SilentlyContinue"
