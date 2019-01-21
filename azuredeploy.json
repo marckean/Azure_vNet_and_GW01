@@ -247,7 +247,10 @@
           {
             "name": "[variables('HubvNet').azureFirewallSubnetName]",
             "properties": {
-              "addressPrefix": "[variables('HubvNet').azureFirewallSubnetPrefix]"
+              "addressPrefix": "[variables('HubvNet').azureFirewallSubnetPrefix]",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('azfwRouteTableName'))]"
+              }
             }
           }
         ]
