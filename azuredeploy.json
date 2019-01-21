@@ -2,7 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "vNetName": {
+    "ServersvNetName": {
       "type": "string",
       "defaultValue": "ServersvNet",
       "metadata": {
@@ -37,7 +37,7 @@
     }
   },
   "variables": {
-    "vNet": {
+    "ServersvNet": {
       "AddressPrefix": "10.0.0.0/21",
       "serversSubnetPrefix": "10.0.2.0/24",
       "jumpboxSubnetPrefix": "10.0.0.0/24",
@@ -58,16 +58,16 @@
     "HubtovNetPeeringName": "HubtovNetPeering",
     "GWtoHubPeeringName": "GWtoHubPeering",
     "HubtoGWPeeringName": "HubtoGWPeering",
+    "vNettoGWPeeringName": "vNettoGWPeering",
+    "GWtovNetPeeringName": "GWtovNetPeering",
     "nextHopIP": "10.0.8.4",
-    "jumpBoxNsgName": "JumpHostNSG",
     "jumpBoxNicName": "JumpHostNic",
-    "jumpBoxSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), variables('vNet').jumpBoxSubnetName)]",
+    "jumpBoxSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('ServersvNetName'), variables('ServersvNet').jumpBoxSubnetName)]",
     "serverNicName": "ServerNic",
-    "serverSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vNetName'), variables('vNet').serversSubnetName)]",
+    "serverSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('ServersvNetName'), variables('ServersvNet').serversSubnetName)]",
     "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'sajumpbox')]",
-    "azfwRouteTableName": "AzfwRouteTable",
+    "ServersRouteTableName": "ServersRouteTable",
     "firewallName": "AzureFirewall",
-    "JumpBoxPublicIPName": "JumpBoxPublicIP",
     "AzureFirewallPublicIPName": "AzureFirewallPublicIP",
     "gatewayPublicIPName": "gatewayPublicIP",
     "azureFirewallSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('HubvNetName'), variables('hubvNet').azureFirewallSubnetName)]",
@@ -91,25 +91,46 @@
     },
     {
       "type": "Microsoft.Network/routeTables",
-      "name": "[variables('azfwRouteTableName')]",
+      "name": "[variables('ServersRouteTableName')]",
       "apiVersion": "2018-02-01",
       "location": "[resourceGroup().location]",
       "properties": {
         "disableBgpRoutePropagation": true,
         "routes": [
           {
-            "name": "AzfwDefaultRoute",
+            "name": "AzfwCustomTraffic",
             "properties": {
-              "addressPrefix": "0.0.0.0/0",
+              "addressPrefix": "10.2.4.0/24",
               "nextHopType": "VirtualAppliance",
               "nextHopIpAddress": "[variables('nextHopIP')]"
+            }
+          },
+          {
+            "name": "AzurePaaS01",
+            "properties": {
+              "addressPrefix": "13.70.64.0/18",
+              "nextHopType": "Internet"
+            }
+          },
+          {
+            "name": "AzurePaaS02",
+            "properties": {
+              "addressPrefix": "13.72.224.0/19",
+              "nextHopType": "Internet"
+            }
+          },
+          {
+            "name": "AzurePaaS03",
+            "properties": {
+              "addressPrefix": "13.73.192.0/20",
+              "nextHopType": "Internet"
             }
           }
         ]
       }
     },
     {
-      "name": "[parameters('vNetName')]",
+      "name": "[parameters('ServersvNetName')]",
       "apiVersion": "2017-06-01",
       "type": "Microsoft.Network/virtualNetworks",
       "location": "[resourceGroup().location]",
@@ -117,27 +138,30 @@
         "[resourceId('Microsoft.Network/azureFirewalls', variables('firewallName'))]"
       ],
       "tags": {
-        "displayName": "[parameters('vNetName')]"
+        "displayName": "[parameters('ServersvNetName')]"
       },
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "[variables('vNet').AddressPrefix]"
+            "[variables('ServersvNet').AddressPrefix]"
           ]
         },
         "subnets": [
           {
-            "name": "[variables('vNet').jumpBoxSubnetName]",
+            "name": "[variables('ServersvNet').jumpBoxSubnetName]",
             "properties": {
-              "addressPrefix": "[variables('vNet').jumpboxSubnetPrefix]"
+              "addressPrefix": "[variables('ServersvNet').jumpboxSubnetPrefix]",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('ServersRouteTableName'))]"
+              }
             }
           },
           {
-            "name": "[variables('vNet').serversSubnetName]",
+            "name": "[variables('ServersvNet').serversSubnetName]",
             "properties": {
-              "addressPrefix": "[variables('vNet').serversSubnetPrefix]",
+              "addressPrefix": "[variables('ServersvNet').serversSubnetPrefix]",
               "routeTable": {
-                "id": "[resourceId('Microsoft.Network/routeTables', variables('azfwRouteTableName'))]"
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('ServersRouteTableName'))]"
               }
             }
           }
@@ -150,8 +174,7 @@
           "apiVersion": "2018-08-01",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]",
             "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
           ],
           "properties": {
@@ -161,6 +184,26 @@
             "useRemoteGateways": false,
             "remoteVirtualNetwork": {
               "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
+            },
+            "peeringState": "Connected"
+          }
+        },
+        {
+          "name": "[variables('vNettoGWPeeringName')]",
+          "type": "virtualNetworkPeerings",
+          "apiVersion": "2018-08-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
+          ],
+          "properties": {
+            "allowVirtualNetworkAccess": true,
+            "allowForwardedTraffic": false,
+            "allowGatewayTransit": false,
+            "useRemoteGateways": true,
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('GatewayvNetName'))]"
             },
             "peeringState": "Connected"
           }
@@ -197,7 +240,6 @@
           "apiVersion": "2018-08-01",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
             "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
             "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
           ],
@@ -218,9 +260,8 @@
           "apiVersion": "2018-08-01",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]"
           ],
           "properties": {
             "allowVirtualNetworkAccess": true,
@@ -228,7 +269,7 @@
             "allowGatewayTransit": false,
             "useRemoteGateways": false,
             "remoteVirtualNetwork": {
-              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('vNetName'))]"
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('ServersvNetName'))]"
             },
             "peeringState": "Connected"
           }
@@ -265,17 +306,36 @@
           "apiVersion": "2018-08-01",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
             "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
             "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
           ],
           "properties": {
             "allowVirtualNetworkAccess": true,
-            "allowForwardedTraffic": true,
+            "allowForwardedTraffic": false,
             "allowGatewayTransit": true,
             "useRemoteGateways": false,
             "remoteVirtualNetwork": {
               "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
+            },
+            "peeringState": "Connected"
+          }
+        },
+        {
+          "name": "[variables('GWtovNetPeeringName')]",
+          "type": "virtualNetworkPeerings",
+          "apiVersion": "2018-08-01",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
+          ],
+          "properties": {
+            "allowVirtualNetworkAccess": true,
+            "allowForwardedTraffic": false,
+            "allowGatewayTransit": true,
+            "useRemoteGateways": false,
+            "remoteVirtualNetwork": {
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('ServersvNetName'))]"
             },
             "peeringState": "Connected"
           }
@@ -332,19 +392,6 @@
     {
       "apiVersion": "2018-07-01",
       "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('JumpBoxPublicIPName')]",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Basic"
-      },
-      "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "publicIPAddressVersion": "IPv4"
-      }
-    },
-    {
-      "apiVersion": "2018-07-01",
-      "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('AzureFirewallPublicIPName')]",
       "location": "[resourceGroup().location]",
       "sku": {
@@ -357,29 +404,24 @@
           "domainNameLabel": "[concat('pip', uniqueString(resourceGroup().name))]"
         }
       }
-    },
+    },  
     {
-      "name": "[variables('jumpBoxNsgName')]",
-      "type": "Microsoft.Network/networkSecurityGroups",
-      "apiVersion": "2018-02-01",
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('JumpBoxNicName')]",
       "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]"
+      ],
       "properties": {
-        "securityRules": [
+        "ipConfigurations": [
           {
-            "name": "myNetworkSecurityGroupRuleRDP",
+            "name": "ipconfig1",
             "properties": {
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "3389",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 1000,
-              "direction": "Inbound",
-              "sourcePortRanges": [],
-              "destinationPortRanges": [],
-              "sourceAddressPrefixes": [],
-              "destinationAddressPrefixes": []
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('jumpBoxSubnetId')]"
+              }
             }
           }
         ]
@@ -388,40 +430,10 @@
     {
       "apiVersion": "2016-03-30",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[variables('JumpBoxNicName')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses/', variables('JumpBoxPublicIPName'))]",
-        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]",
-        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('jumpBoxNsgName'))]"
-      ],
-      "properties": {
-        "ipConfigurations": [
-          {
-            "name": "ipconfig1",
-            "properties": {
-              "privateIPAllocationMethod": "Dynamic",
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('JumpBoxPublicIPName'))]"
-              },
-              "subnet": {
-                "id": "[variables('jumpBoxSubnetId')]"
-              }
-            }
-          }
-        ],
-        "networkSecurityGroup": {
-          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('jumpBoxNsgName'))]"
-        }
-      }
-    },
-    {
-      "apiVersion": "2016-03-30",
-      "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('ServerNicName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('vNetName'))]"
+        "[resourceId('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]"
       ],
       "properties": {
         "ipConfigurations": [
