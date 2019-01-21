@@ -67,6 +67,7 @@
     "serverSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('ServersvNetName'), variables('ServersvNet').serversSubnetName)]",
     "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'sajumpbox')]",
     "ServersRouteTableName": "ServersRouteTable",
+    "azfwRouteTableName": "azfwRouteTable",
     "firewallName": "AzureFirewall",
     "AzureFirewallPublicIPName": "AzureFirewallPublicIP",
     "gatewayPublicIPName": "gatewayPublicIP",
@@ -123,6 +124,24 @@
             "name": "AzurePaaS03",
             "properties": {
               "addressPrefix": "13.73.192.0/20",
+              "nextHopType": "Internet"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/routeTables",
+      "name": "[variables('azfwRouteTableName')]",
+      "apiVersion": "2018-02-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "disableBgpRoutePropagation": true,
+        "routes": [
+          {
+            "name": "AzfwInternetAccess",
+            "properties": {
+              "addressPrefix": "0.0.0.0/0",
               "nextHopType": "Internet"
             }
           }
@@ -247,7 +266,7 @@
             "allowVirtualNetworkAccess": true,
             "allowForwardedTraffic": false,
             "allowGatewayTransit": false,
-            "useRemoteGateways": true,
+            "useRemoteGateways": false,
             "remoteVirtualNetwork": {
               "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('GatewayvNetName'))]"
             },
@@ -312,7 +331,7 @@
           "properties": {
             "allowVirtualNetworkAccess": true,
             "allowForwardedTraffic": false,
-            "allowGatewayTransit": true,
+            "allowGatewayTransit": false,
             "useRemoteGateways": false,
             "remoteVirtualNetwork": {
               "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('HubvNetName'))]"
