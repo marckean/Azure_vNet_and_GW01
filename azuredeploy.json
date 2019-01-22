@@ -39,10 +39,10 @@
   "variables": {
     "ServersvNet": {
       "AddressPrefix": "10.0.0.0/21",
-      "serversSubnetPrefix": "10.0.2.0/24",
-      "jumpboxSubnetPrefix": "10.0.0.0/24",
-      "jumpBoxSubnetName": "JumpboxSubnet",
-      "serversSubnetName": "ServersSubnet"
+      "Subnet01Prefix": "10.0.0.0/24",
+      "Subnet02Prefix": "10.0.2.0/24",
+      "Subnet01Name": "Subnet01",
+      "Subnet02Name": "Subnet02"
     },
     "hubvNet": {
       "AddressPrefix": "10.0.8.0/26",
@@ -61,10 +61,10 @@
     "vNettoGWPeeringName": "vNettoGWPeering",
     "GWtovNetPeeringName": "GWtovNetPeering",
     "nextHopIP": "10.0.8.4",
-    "jumpBoxNicName": "JumpHostNic",
-    "jumpBoxSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('ServersvNetName'), variables('ServersvNet').jumpBoxSubnetName)]",
-    "serverNicName": "ServerNic",
-    "serverSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('ServersvNetName'), variables('ServersvNet').serversSubnetName)]",
+    "Server01NicName": "Server01Nic",
+    "Server01SubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('ServersvNetName'), variables('ServersvNet').Subnet01Name)]",
+    "server02NicName": "Server02Nic",
+    "server02SubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('ServersvNetName'), variables('ServersvNet').Subnet02Name)]",
     "storageAccountName": "[concat(uniquestring(resourceGroup().id), 'sajumpbox')]",
     "ServersRouteTableName": "ServersRouteTable",
     "azfwRouteTableName": "azfwRouteTable",
@@ -167,18 +167,18 @@
         },
         "subnets": [
           {
-            "name": "[variables('ServersvNet').jumpBoxSubnetName]",
+            "name": "[variables('ServersvNet').Subnet01Name]",
             "properties": {
-              "addressPrefix": "[variables('ServersvNet').jumpboxSubnetPrefix]",
+              "addressPrefix": "[variables('ServersvNet').Subnet01Prefix]",
               "routeTable": {
                 "id": "[resourceId('Microsoft.Network/routeTables', variables('ServersRouteTableName'))]"
               }
             }
           },
           {
-            "name": "[variables('ServersvNet').serversSubnetName]",
+            "name": "[variables('ServersvNet').Subnet02Name]",
             "properties": {
-              "addressPrefix": "[variables('ServersvNet').serversSubnetPrefix]",
+              "addressPrefix": "[variables('ServersvNet').Subnet02Prefix]",
               "routeTable": {
                 "id": "[resourceId('Microsoft.Network/routeTables', variables('ServersRouteTableName'))]"
               }
@@ -430,7 +430,7 @@
     {
       "apiVersion": "2016-03-30",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[variables('JumpBoxNicName')]",
+      "name": "[variables('Server01NicName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]"
@@ -442,7 +442,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
-                "id": "[variables('jumpBoxSubnetId')]"
+                "id": "[variables('Server01SubnetId')]"
               }
             }
           }
@@ -452,7 +452,7 @@
     {
       "apiVersion": "2016-03-30",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[variables('ServerNicName')]",
+      "name": "[variables('Server02NicName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]"
@@ -464,7 +464,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
-                "id": "[variables('serverSubnetId')]"
+                "id": "[variables('server02SubnetId')]"
               }
             }
           }
@@ -503,7 +503,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('JumpBoxNicName'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('Server01NicName'))]"
             }
           ]
         },
@@ -516,7 +516,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces', variables('JumpBoxNicName'))]"
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('Server01NicName'))]"
       ]
     },
     {
@@ -551,7 +551,7 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('ServerNicName'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('Server02NicName'))]"
             }
           ]
         },
@@ -564,7 +564,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.Network/networkInterfaces', variables('ServerNicName'))]"
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('Server02NicName'))]"
       ]
     },
     {
@@ -649,7 +649,7 @@
         ],
         "natRuleCollections": [
           {
-            "name": "MarcNat",
+            "name": "RDPNat",
             "properties": {
               "provisioningState": "Succeeded",
               "priority": 100,
@@ -658,7 +658,7 @@
               },
               "rules": [
                 {
-                  "name": "JumpRDP",
+                  "name": "RDPRDP",
                   "protocols": [
                     "TCP"
                   ],
