@@ -51,18 +51,42 @@
       "metadata": {
         "description": "CIDR block representing the address space of your local/on-prem network's Subnet"
       }
+    },
+    "hubvNetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.8.0/26",
+      "metadata": {
+        "description": "Address space of the entire Hub vNet, which encapsulates subnets"
+      }
+    },
+    "azureFirewallSubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.8.0/26",
+      "metadata": {
+        "description": "Address range of the ear-marked Azure Firewall subnet placeholder"
+      }
+    },
+    "GatewayvNetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.8.64/28",
+      "metadata": {
+        "description": "Address space of the entire Gateway vNet, which encapsulates subnets"
+      }
+    },
+    "GatewaySubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.8.64/28",
+      "metadata": {
+        "description": "Address range of the Gateway subnet"
+      }
     }
   },
   "variables": {
     "hubvNet": {
-      "AddressPrefix": "10.0.8.0/26",
-      "azureFirewallSubnetPrefix": "10.0.8.0/26",
       "azureFirewallSubnetName": "AzureFirewallSubnet"
     },
     "GWvNet": {
-      "AddressPrefix": "10.0.8.64/28",
-      "GatewaySubnetName": "GatewaySubnet",
-      "GatewaySubnetPrefix": "10.0.8.64/28"
+      "GatewaySubnetName": "GatewaySubnet"
     },
     "GWtoHubPeeringName": "GWtoHubPeering",
     "HubtoGWPeeringName": "HubtoGWPeering",
@@ -104,14 +128,14 @@
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "[variables('GWvNet').AddressPrefix]"
+            "[parameters('GatewayvNetAddressPrefix')]"
           ]
         },
         "subnets": [
           {
             "name": "[variables('GWvNet').GatewaySubnetName]",
             "properties": {
-              "addressPrefix": "[variables('GWvNet').GatewaySubnetPrefix]"
+              "addressPrefix": "[parameters('GatewaySubnetPrefix')]"
             }
           }
         ]
@@ -153,14 +177,14 @@
       "properties": {
         "addressSpace": {
           "addressPrefixes": [
-            "[variables('HubvNet').AddressPrefix]"
+            "[parameters('HubvNetAddressPrefix')]"
           ]
         },
         "subnets": [
           {
             "name": "[variables('HubvNet').azureFirewallSubnetName]",
             "properties": {
-              "addressPrefix": "[variables('HubvNet').azureFirewallSubnetPrefix]",
+              "addressPrefix": "[parameters('azureFirewallSubnetPrefix')]",
               "routeTable": {
                 "id": "[resourceId('Microsoft.Network/routeTables', variables('azfwRouteTableName'))]"
               }
