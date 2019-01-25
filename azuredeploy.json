@@ -144,6 +144,9 @@
       "apiVersion": "2017-06-01",
       "type": "Microsoft.Network/virtualNetworks",
       "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/routeTables/', variables('azfwRouteTableName'))]"
+      ],
       "tags": {
         "displayName": "[parameters('HubvNetName')]"
       },
@@ -254,7 +257,7 @@
       "name": "[variables('connectionName')]",
       "type": "Microsoft.Network/connections",
       "apiVersion": "2018-08-01",
-      "location": "string",
+      "location": "[resourceGroup().location]",
       "dependsOn": [
         "[concat('Microsoft.Network/virtualNetworkGateways/', variables('gatewayName'))]",
         "[concat('Microsoft.Network/localNetworkGateways/', parameters('localGatewayName'))]"
