@@ -1,26 +1,16 @@
 # Create AzureFirewall using an Azure ARM template - Gov
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmarckean%2FAzureFirewall02%2Fmaster%2Fazuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmarckean%2FAzure_vNet_and_GW01%2Fmaster%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fmarckean%2FAzureFirewall02%2Fmaster%2Fazuredeploy.json" target="_blank">
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fmarckean%2FAzure_vNet_and_GW01%2Fmaster%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
 <p style="text-align:center"><img src="AzureFirewall03.jpg" alt="Azure Firewall Hub & Spoke"></p>
 
-This **Gov** solution means you don't trust sending traffic out to the internet from within Azure, all traffic comes back on-prem with forced tunneling, then out via on-prem firewalls & proxies.
+This template will create a Virtual Network, a subnet for the network, a Virtual Network Gateway and a Connection to your network outside of Azure (defined as your `local` network). This could be anything such as your on-premises network and can even be used with other cloud networks such as [AWS Virtual Private Cloud](https://github.com/sedouard/aws-vpc-to-azure-vnet). It also provisions an Ubuntu instance attached to the Azure Virtual Network so that you can test connectivity.
 
-This template creates 3 virtual networks (Servers vNet, Gateway vNet and a Hub vNet for an Azure Firewall). Also inclueded is a jumpbox VM with public IP with RDP access.
+Please note that you must have a Public IP for your other network's VPN gateway and cannot be behind an NAT.
 
-Also created is a server VM with only a private IP, UDR route to point to AzureFirewall for the **ServersSubnet** and an AzureFirewall with 1 sample application rule (allowing *microsoft.com), 1 NAT rule for access to the **Server** uring port translation, port 3391 to port 3389 and 1 sample network rule.
-
-Azure Firewall is a managed cloud-based network security service that protects your Azure Virtual Network resources.
-
-It is a fully stateful firewall as a service with built-in high availability and unrestricted cloud scalability.
-
-You can centrally create, enforce, and log application and network connectivity policies across subscriptions and virtual network.
-
-Azure Firewall uses a static public IP address for your virtual network resources allowing outside firewalls to identify traffic originating from your virtual network.
-
-The service is fully integrated with Azure Monitor for logging and analytics. Learn more at https://docs.microsoft.com/en-us/azure/firewall.
+Although only the parameters in [azuredeploy.parameters.json](./azuredeploy.parameters.json) are necessary, you can override the defaults of any of the template parameters.

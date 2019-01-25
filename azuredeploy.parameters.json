@@ -2,14 +2,26 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "virtualNetworkName": {
+      "GatewayvNetName": {
         "value": "GEN-UNIQUE"
       },
-      "adminUsername": {
-        "value": "GEN-USER"
+      "HubvNetName": {
+        "value": "GEN-UNIQUE"
       },
-      "adminPassword": {
-        "value": "GEN-PASSWORD"
+      "vpnType": {
+        "value": "GEN-UNIQUE"
+      },
+      "sharedKey": {
+        "value": "GEN-UNIQUE"
+      },
+      "localGatewayName": {
+        "value": "GEN-UNIQUE"
+      },
+      "localGatewayIpAddress": {
+        "value": "GEN-UNIQUE"
+      },
+      "localAddressPrefix": {
+        "value": "GEN-UNIQUE"
       }
     }
   }

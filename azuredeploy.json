@@ -2,13 +2,6 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "ServersvNetName": {
-      "type": "string",
-      "defaultValue": "ServersvNet",
-      "metadata": {
-        "description": "virtual network name"
-      }
-    },
     "GatewayvNetName": {
       "type": "string",
       "defaultValue": "GatewayvNet",
@@ -23,27 +16,44 @@
         "description": "Hub virtual network name"
       }
     },
-    "adminUsername": {
+    "vpnType": {
       "type": "string",
       "metadata": {
-        "description": "Username for the Virtual Machine."
+        "description": "Route based (Dynamic Gateway) or Policy based (Static Gateway)"
+      },
+      "defaultValue": "RouteBased",
+      "allowedValues": [
+        "RouteBased",
+        "PolicyBased"
+      ]
+    },
+    "sharedKey": {
+      "type": "string",
+      "metadata": {
+        "description": "Shared key (PSK) for IPSec tunnel"
       }
     },
-    "adminPassword": {
-      "type": "securestring",
+    "localGatewayName": {
+      "type": "string",
+      "defaultValue": "localGateway",
       "metadata": {
-        "description": "Password for the Virtual Machine."
+        "description": "Arbitrary name for gateway resource representing your local/on-prem gateway"
+      }
+    },
+    "localGatewayIpAddress": {
+      "type": "string",
+      "metadata": {
+        "description": "Public IP of your local/on-prem gateway"
+      }
+    },
+    "localAddressPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "CIDR block representing the address space of your local/on-prem network's Subnet"
       }
     }
   },
   "variables": {
-    "ServersvNet": {
-      "AddressPrefix": "10.0.0.0/21",
-      "Subnet01Prefix": "10.0.0.0/24",
-      "Subnet02Prefix": "10.0.2.0/24",
-      "Subnet01Name": "Subnet01",
-      "Subnet02Name": "Subnet02"
-    },
     "hubvNet": {
       "AddressPrefix": "10.0.8.0/26",
       "azureFirewallSubnetPrefix": "10.0.8.0/26",
@@ -54,61 +64,17 @@
       "GatewaySubnetName": "GatewaySubnet",
       "GatewaySubnetPrefix": "10.0.8.64/28"
     },
-    "HubtovNetPeeringName": "HubtovNetPeering",
     "GWtoHubPeeringName": "GWtoHubPeering",
     "HubtoGWPeeringName": "HubtoGWPeering",
-    "GWtovNetPeeringName": "GWtovNetPeering",
-    "nextHopIP": "10.0.8.4",
-    "ServersRouteTableName": "ServersRouteTable",
     "azfwRouteTableName": "azfwRouteTable",
     "AzureFirewallPublicIPName": "AzureFirewallPublicIP",
     "gatewayPublicIPName": "gatewayPublicIP",
     "GatewaySubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets',parameters('GatewayvNetName'), variables('GWvNet').GatewaySubnetName)]",
-    "gatewayName": "vpnGateway",
+    "gatewayName": "Azure_VPN_Gateway",
     "gatewaySku": "Basic",
-    "vpnType": "RouteBased"
+    "connectionName": "Azure2VPN"
   },
   "resources": [
-    {
-      "type": "Microsoft.Network/routeTables",
-      "name": "[variables('ServersRouteTableName')]",
-      "apiVersion": "2018-02-01",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "disableBgpRoutePropagation": true,
-        "routes": [
-          {
-            "name": "AzfwCustomTraffic",
-            "properties": {
-              "addressPrefix": "10.2.4.0/24",
-              "nextHopType": "VirtualAppliance",
-              "nextHopIpAddress": "[variables('nextHopIP')]"
-            }
-          },
-          {
-            "name": "AzurePaaS01",
-            "properties": {
-              "addressPrefix": "13.70.64.0/18",
-              "nextHopType": "Internet"
-            }
-          },
-          {
-            "name": "AzurePaaS02",
-            "properties": {
-              "addressPrefix": "13.72.224.0/19",
-              "nextHopType": "Internet"
-            }
-          },
-          {
-            "name": "AzurePaaS03",
-            "properties": {
-              "addressPrefix": "13.73.192.0/20",
-              "nextHopType": "Internet"
-            }
-          }
-        ]
-      }
-    },
     {
       "type": "Microsoft.Network/routeTables",
       "name": "[variables('azfwRouteTableName')]",
@@ -170,28 +136,71 @@
             },
             "peeringState": "Connected"
           }
+        }
+      ]
+    },
+    {
+      "name": "[parameters('HubvNetName')]",
+      "apiVersion": "2017-06-01",
+      "type": "Microsoft.Network/virtualNetworks",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "displayName": "[parameters('HubvNetName')]"
+      },
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[variables('HubvNet').AddressPrefix]"
+          ]
         },
+        "subnets": [
+          {
+            "name": "[variables('HubvNet').azureFirewallSubnetName]",
+            "properties": {
+              "addressPrefix": "[variables('HubvNet').azureFirewallSubnetPrefix]",
+              "routeTable": {
+                "id": "[resourceId('Microsoft.Network/routeTables', variables('azfwRouteTableName'))]"
+              }
+            }
+          }
+        ]
+      },
+      "resources": [
         {
-          "name": "[variables('GWtovNetPeeringName')]",
+          "name": "[variables('HubtoGWPeeringName')]",
           "type": "virtualNetworkPeerings",
           "apiVersion": "2018-08-01",
           "location": "[resourceGroup().location]",
           "dependsOn": [
-            "[concat('Microsoft.Network/virtualNetworks/', parameters('ServersvNetName'))]",
+            "[concat('Microsoft.Network/virtualNetworks/', parameters('HubvNetName'))]",
             "[concat('Microsoft.Network/virtualNetworks/', parameters('GatewayvNetName'))]"
           ],
           "properties": {
             "allowVirtualNetworkAccess": true,
             "allowForwardedTraffic": false,
-            "allowGatewayTransit": true,
+            "allowGatewayTransit": false,
             "useRemoteGateways": false,
             "remoteVirtualNetwork": {
-              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('ServersvNetName'))]"
+              "id": "[resourceId('Microsoft.Network/virtualNetworks',parameters('GatewayvNetName'))]"
             },
             "peeringState": "Connected"
           }
         }
       ]
+    },
+    {
+      "apiVersion": "2018-07-01",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('gatewayPublicIPName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Basic",
+        "tier": "Regional"
+    },
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "publicIPAddressVersion": "IPv4"
+      }
     },
     {
       "apiVersion": "2018-07-01",
@@ -222,38 +231,45 @@
           "tier": "[variables('gatewaySku')]"
         },
         "gatewayType": "Vpn",
-        "vpnType": "[variables('vpnType')]",
+        "vpnType": "[parameters('vpnType')]",
         "enableBgp": "false"
       }
     },
     {
-      "apiVersion": "2018-07-01",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('gatewayPublicIPName')]",
+      "name": "[parameters('localGatewayName')]",
+      "type": "Microsoft.Network/localNetworkGateways",
+      "apiVersion": "2018-08-01",
       "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Basic",
-        "tier": "Regional"
-    },
+      "tags": {},
       "properties": {
-        "publicIPAllocationMethod": "Dynamic",
-        "publicIPAddressVersion": "IPv4"
+        "localNetworkAddressSpace": {
+          "addressPrefixes": [
+            "[parameters('localAddressPrefix')]"
+          ]
+        },
+        "gatewayIpAddress": "[parameters('localGatewayIpAddress')]"
       }
     },
     {
-      "apiVersion": "2018-07-01",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('AzureFirewallPublicIPName')]",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Standard"
-      },
+      "name": "[variables('connectionName')]",
+      "type": "Microsoft.Network/connections",
+      "apiVersion": "2018-08-01",
+      "location": "string",
+      "dependsOn": [
+        "[concat('Microsoft.Network/virtualNetworkGateways/', variables('gatewayName'))]",
+        "[concat('Microsoft.Network/localNetworkGateways/', parameters('localGatewayName'))]"
+      ],
       "properties": {
-        "publicIPAllocationMethod": "Static",
-        "publicIPAddressVersion": "IPv4",
-        "dnsSettings": {
-          "domainNameLabel": "[concat('pip', uniqueString(resourceGroup().name))]"
-        }
+        "virtualNetworkGateway1": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', variables('gatewayName'))]"
+        },
+        "localNetworkGateway2": {
+          "id": "[resourceId('Microsoft.Network/localNetworkGateways', parameters('localGatewayName'))]"
+        },
+        "connectionType": "IPsec",
+        "connectionProtocol": "IKEv2",
+        "routingWeight": 10,
+        "sharedKey": "[parameters('sharedKey')]"
       }
     }
   ],
